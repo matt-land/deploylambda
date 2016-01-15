@@ -5,44 +5,54 @@ import subprocess
 import sys
 
 
-def deploy():
-    deploylambda.setupOS()
-
+def getfirstarg():
     try:
         sys.argv[1]
     except:
         deploylambda.print_lambdas()
         exit(1)
+    return sys.argv[1]
 
-    lambda_name = sys.argv[1]
+
+def deploy():
+    deploylambda.setupOS()
+    lambda_name = getfirstarg()
     deploylambda.backup_old_lambda(lambda_name)
-    zipname = deploylambda.create_zip(lambda_name)
+    deploylambda.create_zip(lambda_name)
     deploylambda.deploy_new_lambda(lambda_name)
     exit(0)
 
+
+def update():
+    deploylambda.setupOS()
+    lambda_name = getfirstarg()
+    deploylambda.deploy_new_lambda(lambda_name)
+    exit(0)
+
+
 def package():
     deploylambda.setupOS()
-    try:
-        sys.argv[1]
-    except:
-        deploylambda.print_lambdas()
-        exit(1)
-
-    lambda_name = sys.argv[1]
-    zipname = deploylambda.create_zip(lambda_name)
+    lambda_name = getfirstarg()
+    deploylambda.create_zip(lambda_name)
     exit(0)
+
 
 def backup():
     deploylambda.setupOS()
-    try:
-        sys.argv[1]
-    except:
-        deploylambda.print_lambdas()
-        exit(1)
-    lambda_name = sys.argv[1]
+    lambda_name = getfirstarg()
     deploylambda.backup_old_lambda(lambda_name)
+    if not os.path.isfile('./'+lambda_name):
+        deploylambda.unpack_lamdba(lambda_name)
     exit(0)
+
 
 def list():
     deploylambda.setupOS()
     deploylambda.print_lambdas()
+    exit(0)
+
+
+def unpack():
+    deploylambda.setupOS()
+    lambda_name = getfirstarg()
+    deploylambda.unpack_lamdba(lambda_name)

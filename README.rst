@@ -57,6 +57,16 @@ example:
 `deploy-lambda my-lambda-function`
 
 
+Recipes
+_________________
+
+To start using with exiting lambda functions
+`list-lambda`
+`backup-lambda myawslambda`
+... make changes to the code
+`deploy-lambda myawslambda`
+
+
 Notes
 ------------------
 lambda function name must match the folder name (exactly)

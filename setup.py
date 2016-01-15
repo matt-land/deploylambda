@@ -26,6 +26,7 @@ setup(name='deploylambda',
               'package-lambda=deploylambda.command_line:pack',
               'backup-lambda=deploylambda.command_line:backup',
               'list-lambda=deploylambda.command_line:list',
+              'unpack-lambda=deploylambda.command_line:unpack',
           ]
     },
 )

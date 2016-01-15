@@ -53,6 +53,17 @@ def backup_old_lambda(lambda_name):
     wget.download(obj['Code']['Location'], name)
     print ''
 
+def unpack_lamdba(lamdba_name):
+    print "Unpacking lambda to local file system as "+lamdba_name
+    zipname = lamdba_name + "-last.zip"
+    pathname = "./" + lamdba_name
+    if not os.path.isfile(zipname):
+        raise NameError('missing zip file to unpack '+ zipname)
+    if os.path.isfile(pathname):
+        raise NameError('lambda function code already exists in '+ pathname)
+    zf = zipfile.ZipFile(zipname, 'r')
+    zf.extractall(pathname)
+
 
 def print_lambdas():
     print "Available lambda functions in "+get_account()
