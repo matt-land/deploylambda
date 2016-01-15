@@ -2,6 +2,10 @@
 
 from setuptools import setup
 
+def readme():
+    with open('README.rst') as f:
+        return f.read()
+
 setup(name='deploylambda',
     version='0.12',
     description='Package and deploy aws lambda functions, and backup current versions',
@@ -19,6 +23,7 @@ setup(name='deploylambda',
     entry_points={
           'console_scripts': [
               'deploy-lambda=deploylambda.command_line:deploy',
+              'package-lambda=deploylambda.command_line:pack',
               'backup-lambda=deploylambda.command_line:backup',
               'list-lambda=deploylambda.command_line:list',
           ]
