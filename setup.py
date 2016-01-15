@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(name='deploylambda',
     version='0.12',
-    description='Deploy aws lambda code',
+    description='Package and deploy aws lambda functions, and backup current versions',
     url='http://github.com/matt-land/deploy-lambda',
     author='Matt Land',
     author_email='mwfrankland@gmail.com',
