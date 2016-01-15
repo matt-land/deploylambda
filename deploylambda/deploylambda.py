@@ -8,26 +8,6 @@ import wget
 import sys
 import ConfigParser
 
-if not os.path.isfile(os.path.expanduser('~') +'/.aws/credentials'):
-    print 'please run aws configure, missing credentials'
-    exit(1)
-
-profile = 'default'
-
-userconfig = ConfigParser.ConfigParser()
-userconfig.readfp(open(os.path.expanduser('~') +'/.aws/credentials'))
-
-os.environ['AWS_ACCESS_KEY_ID'] = userconfig.get(profile, 'aws_access_key_id')
-os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(profile, 'aws_secret_access_key')
-
-if not os.path.isfile(os.path.expanduser('~') +'/.aws/credentials'):
-    print 'please run aws configure, missing config'
-    exit(1)
-
-regionconfig = ConfigParser.ConfigParser()
-regionconfig.readfp(open(os.path.expanduser('~') +'/.aws/config'))
-os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
-
 
 def get_account():
     account = subprocess.check_output('aws iam list-account-aliases', shell=True)
@@ -36,6 +16,7 @@ def get_account():
         return obj['AccountAliases'][0]
     except:
         return 'account'
+
 
 def create_zip(lambda_name):
     zipname = lambda_name + '.zip'
@@ -93,27 +74,50 @@ def deploy_new_lambda(lambda_name):
     print " Last Modified: "+obj['LastModified']
     print " Sha: "+obj['CodeSha256']
     print " Code Size: "+str(obj['CodeSize'])
-    print "https://console.aws.amazon.com/lambda/home?region="+regionconfig.get(profile, 'region')+"#/functions/"+lambda_name+"?tab=code"
+    #print "https://console.aws.amazon.com/lambda/home?region="+regionconfig.get(profile, 'region')+"#/functions/"+lambda_name+"?tab=code"
 
 
-get_account()
-try:
-    subprocess.check_output("command -v aws", shell=True)
-except:
-    print 'error: install aws cli tools'
-    exit(1)
+def run():
 
-try:
-    sys.argv[1]
-except:
-    print_lambdas()
-    exit(1)
+    if not os.path.isfile(os.path.expanduser('~') +'/.aws/credentials'):
+        print 'please run aws configure, missing credentials'
+        exit(1)
+
+    profile = 'default'
+
+    userconfig = ConfigParser.ConfigParser()
+    userconfig.readfp(open(os.path.expanduser('~') +'/.aws/credentials'))
+
+    os.environ['AWS_ACCESS_KEY_ID'] = userconfig.get(profile, 'aws_access_key_id')
+    os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(profile, 'aws_secret_access_key')
+
+    if not os.path.isfile(os.path.expanduser('~') +'/.aws/credentials'):
+        print 'please run aws configure, missing config'
+        exit(1)
+
+    regionconfig = ConfigParser.ConfigParser()
+    regionconfig.readfp(open(os.path.expanduser('~') +'/.aws/config'))
+    os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
+
+    get_account()
+    try:
+        subprocess.check_output("command -v aws", shell=True)
+    except:
+        print 'error: install aws cli tools'
+        exit(1)
+
+    try:
+        sys.argv[1]
+    except:
+        print_lambdas()
+        exit(1)
 
 
-lambda_name = sys.argv[1]
-print "Deploy lambda "+lambda_name
-backup_old_lambda(lambda_name)
-zipname = create_zip(lambda_name)
-deploy_new_lambda(lambda_name)
-exit(0)
+    lambda_name = sys.argv[1]
+    print "Deploy lambda "+lambda_name
+    backup_old_lambda(lambda_name)
+    zipname = create_zip(lambda_name)
+    deploy_new_lambda(lambda_name)
+    exit(0)
+
 

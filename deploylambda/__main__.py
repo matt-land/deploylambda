@@ -1,0 +1,4 @@
+import deploylambda
+
+deploylambda.run()
+
