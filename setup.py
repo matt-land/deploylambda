@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='deploylambda',
-    version='0.1',
+    version='0.12',
     description='Deploy aws lambda code',
     url='http://github.com/matt-land/deploy-lambda',
     author='Matt Land',
@@ -18,7 +18,7 @@ setup(name='deploylambda',
     packages=['deploylambda'],
     entry_points={
           'console_scripts': [
-              'deploy-lambda = deploylambda.run',
+              'deploy-lambda=deploylambda.command_line:main',
           ]
     },
 )
