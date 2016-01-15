@@ -4,7 +4,7 @@ import shutil
 import wget
 import os
 import subprocess
-
+import ConfigParser
 
 def get_account():
     account = subprocess.check_output('aws iam list-account-aliases', shell=True)
@@ -18,7 +18,9 @@ def get_account():
 def create_zip(lambda_name):
     zipname = lambda_name + '.zip'
     print "Creating deployment package "+zipname
-    subpath = "../" + lambda_name
+    subpath = "./" + lambda_name
+    if not os.path.isdir(subpath):
+        raise NameError('lambda source code folder not found '+lambda_name)
     lastpath = os.getcwd()
     os.chdir(subpath)
 
@@ -32,7 +34,6 @@ def create_zip(lambda_name):
                 continue
             if file == zipname:
                 continue
-            #print root+"/"+file
             zf.write(root+"/"+file)
     zf.close()
     if os.path.isfile(lastpath + "/"+zipname):
@@ -72,4 +73,32 @@ def deploy_new_lambda(lambda_name):
     print " Sha: "+obj['CodeSha256']
     print " Code Size: "+str(obj['CodeSize'])
     #print "https://console.aws.amazon.com/lambda/home?region="+regionconfig.get(profile, 'region')+"#/functions/"+lambda_name+"?tab=code"
+
+
+def setupOS():
+    try:
+        subprocess.check_output("command -v aws", shell=True)
+    except:
+        print 'error: install aws cli tools'
+        exit(1)
+
+    if not os.path.isfile(os.path.expanduser('~') +'/.aws/credentials'):
+        print 'please run aws configure, missing credentials'
+        exit(1)
+
+    profile = 'default'
+
+    userconfig = ConfigParser.ConfigParser()
+    userconfig.readfp(open(os.path.expanduser('~') +'/.aws/credentials'))
+
+    os.environ['AWS_ACCESS_KEY_ID'] = userconfig.get(profile, 'aws_access_key_id')
+    os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(profile, 'aws_secret_access_key')
+
+    if not os.path.isfile(os.path.expanduser('~') +'/.aws/credentials'):
+        print 'please run aws configure, missing config'
+        exit(1)
+
+    regionconfig = ConfigParser.ConfigParser()
+    regionconfig.readfp(open(os.path.expanduser('~') +'/.aws/config'))
+    os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 

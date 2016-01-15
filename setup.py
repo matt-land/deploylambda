@@ -18,7 +18,9 @@ setup(name='deploylambda',
     packages=['deploylambda'],
     entry_points={
           'console_scripts': [
-              'deploy-lambda=deploylambda.command_line:main',
+              'deploy-lambda=deploylambda.command_line:deploy',
+              'backup-lambda=deploylambda.command_line:backup',
+              'list-lambda=deploylambda.command_line:list',
           ]
     },
 )

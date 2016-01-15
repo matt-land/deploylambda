@@ -17,7 +17,9 @@ python setup.py build
 usage
 ------------------
 
-`deploy-lambda` <-- list current lamda functions in th default account
+`list-lambda` <-- list current lamda functions in th default account
+
+`backup-lambda my-lambda-name` <-- download a backup of the current lambda code
 
 `deploy-lambda my-lambda-name` <-- deploy the new lambda code
 

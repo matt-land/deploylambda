@@ -2,3 +2,4 @@
 /deploylambda.egg-info
 /dist
 *.pyc
+.idea
