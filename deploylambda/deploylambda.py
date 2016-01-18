@@ -27,8 +27,9 @@ def create_zip(lambda_name):
     if os.path.isfile(zipname):
         os.unlink(zipname)
     zf = zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED)
-
-    for root, dirs, files in os.walk('.'):
+    for root, dirs, files in os.walk('.', topdown=True):
+        if '.git' in dirs:
+            dirs.remove('.git')
         for file in files:
             if file == '.DS_Store':
                 continue

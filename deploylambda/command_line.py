@@ -26,6 +26,7 @@ def deploy():
 def update():
     deploylambda.setupOS()
     lambda_name = getfirstarg()
+    deploylambda.create_zip(lambda_name)
     deploylambda.deploy_new_lambda(lambda_name)
     exit(0)
 
