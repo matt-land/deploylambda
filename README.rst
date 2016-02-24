@@ -29,8 +29,12 @@ Setup
 
 aws cli must be configured with your account credentials by running `aws configure`
 
-Note: at this time, this tool only supports the [default] configured profile.
+The tool supports multiple aws accounts, choose them with the parameter --profile <profile name>
 
+Example
+>>> `list-lambda --profile sandbox` <- uses a non-default AWS profile.
+
+Look at ~/.aws/credentials for available profiles
 
 
 Usage
