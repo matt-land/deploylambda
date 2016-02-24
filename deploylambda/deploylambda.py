@@ -26,17 +26,18 @@ class DeployLambda:
     @staticmethod
     def create_zip(lambda_name):
         zipname = lambda_name + '.zip'
+        lastzipname = lambda_name + '-last.zip'
         zippath = os.getcwd() + "/" + zipname
         print "Creating deployment package " + zipname
 
         #if not os.path.isdir(subpath):
         #    raise NameError('lambda source code folder not found '+lambda_name)
-        counter = 0;
+        counter = 0
         if os.path.isfile(zippath):
             os.unlink(zippath)
         zf = zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED)
         print os.getcwd() + " is current"
-        for root, dirs, files in os.walk(os.getcwd(), topdown=True):
+        for root, dirs, files in os.walk('.', topdown=True):
             if '.git' in dirs:
                 dirs.remove('.git')
             if 'test' in dirs:
@@ -46,6 +47,8 @@ class DeployLambda:
                     continue
                 if file == zipname:
                     continue
+                if file == lastzipname:
+                    continue
                 if file.endswith(".pyc"):
                     continue
                 print "adding "+root+"/"+file
@@ -53,7 +56,7 @@ class DeployLambda:
                 counter += 1
         zf.close()
         print str(counter) + " files added to "+ zipname
-        return zipname
+        return zippath
 
     def backup_old_lambda(self, lambda_name):
         name = lambda_name + "-last.zip"
@@ -90,10 +93,10 @@ class DeployLambda:
         except:
             print "unable to list lambdas from " + self.get_account()
 
-    def deploy_new_lambda(self, lambda_name):
+    def deploy_new_lambda(self, lambda_name, zippath):
         print "Deploying lambda [" + lambda_name + "] in " + self.get_account()
         try:
-            code = "aws lambda update-function-code --function-name " + lambda_name + " --zip-file fileb://" + lambda_name + ".zip --profile " + self.profile
+            code = "aws lambda update-function-code --function-name " + lambda_name + " --zip-file fileb://" + zippath + " --profile " + self.profile
             #print code
             output = subprocess.check_output(code, shell=True)
             obj = json.loads(output)

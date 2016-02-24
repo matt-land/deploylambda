@@ -16,8 +16,8 @@ def deploy():
     global args
     d = DeployLambda(args.profile)
     d.backup_old_lambda(args.lambda_name)
-    d.create_zip(args.lambda_name)
-    d.deploy_new_lambda(args.lambda_name)
+    zip = d.create_zip(args.lambda_name)
+    d.deploy_new_lambda(args.lambda_name, zip)
     exit(0)
 
 
