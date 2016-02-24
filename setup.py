@@ -23,7 +23,7 @@ setup(
         entry_points={
               'console_scripts': [
                   'deploy-lambda=deploylambda.command_line:deploy',
-                  'package-lambda=deploylambda.command_line:pack',
+                  'package-lambda=deploylambda.command_line:package',
                   'backup-lambda=deploylambda.command_line:backup',
                   'list-lambda=deploylambda.command_line:list',
                   'unpack-lambda=deploylambda.command_line:unpack',

@@ -48,7 +48,7 @@ def backup():
 def list():
     global args
     d = DeployLambda(args.profile)
-    d.print_lambdas()
+    d.list_lambdas()
     exit(0)
 
 

@@ -16,40 +16,43 @@ class DeployLambda:
         self._setup_os()
 
     def get_account(self):
-        account = subprocess.check_output('aws iam list-account-aliases --profile ' + self.profile, shell=True)
-        obj = json.loads(account)
         try:
+            account = subprocess.check_output('aws iam list-account-aliases --profile ' + self.profile, shell=True)
+            obj = json.loads(account)
             return obj['AccountAliases'][0]
         except:
-            return 'account'
+            return '[unknown account]'
 
     @staticmethod
     def create_zip(lambda_name):
         zipname = lambda_name + '.zip'
+        zippath = os.getcwd() + "/" + zipname
         print "Creating deployment package " + zipname
-        subpath = "./" + lambda_name
-        if not os.path.isdir(subpath):
-            raise NameError('lambda source code folder not found '+lambda_name)
-        lastpath = os.getcwd()
-        os.chdir(subpath)
 
-        if os.path.isfile(zipname):
-            os.unlink(zipname)
+        #if not os.path.isdir(subpath):
+        #    raise NameError('lambda source code folder not found '+lambda_name)
+        counter = 0;
+        if os.path.isfile(zippath):
+            os.unlink(zippath)
         zf = zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED)
-        for root, dirs, files in os.walk('.', topdown=True):
+        print os.getcwd() + " is current"
+        for root, dirs, files in os.walk(os.getcwd(), topdown=True):
             if '.git' in dirs:
                 dirs.remove('.git')
+            if 'test' in dirs:
+                dirs.remove('test')
             for file in files:
                 if file == '.DS_Store':
                     continue
                 if file == zipname:
                     continue
+                if file.endswith(".pyc"):
+                    continue
+                print "adding "+root+"/"+file
                 zf.write(root+"/"+file)
+                counter += 1
         zf.close()
-        if os.path.isfile(lastpath + "/"+zipname):
-            os.unlink(lastpath+"/"+zipname)
-        shutil.move(zipname, lastpath)
-        os.chdir(lastpath)
+        print str(counter) + " files added to "+ zipname
         return zipname
 
     def backup_old_lambda(self, lambda_name):
@@ -57,10 +60,13 @@ class DeployLambda:
         print "Backing up existing lambda as "+name
         if os.path.isfile(name):
             os.unlink(name)
-        json_string = subprocess.check_output("aws lambda get-function --function-name " + lambda_name + "--profile " + self.profile, shell=True)
-        obj = json.loads(json_string)
-        wget.download(obj['Code']['Location'], name)
-        print ''
+        try:
+            json_string = subprocess.check_output("aws lambda get-function --function-name " + lambda_name + " --profile " + self.profile, shell=True)
+            obj = json.loads(json_string)
+            wget.download(obj['Code']['Location'], name)
+            print ''
+        except:
+            print "unable to back up old lambda"
 
     @staticmethod
     def unpack_lamdba(lambda_name):
@@ -74,23 +80,28 @@ class DeployLambda:
         zf = zipfile.ZipFile(zipname, 'r')
         zf.extractall(pathname)
 
-
-    def print_lambdas(self):
+    def list_lambdas(self):
         print "Available lambda functions in " + self.get_account()
-        response = subprocess.check_output("aws lambda list-functions --profile " + self.profile, shell=True)
-        obj = json.loads(response)
-        for function in obj['Functions']:
-            print "-> "+function['FunctionName']
+        try:
+            response = subprocess.check_output("aws lambda list-functions --profile " + self.profile, shell=True)
+            obj = json.loads(response)
+            for function in obj['Functions']:
+                print "-> "+function['FunctionName']
+        except:
+            print "unable to list lambdas from " + self.get_account()
 
     def deploy_new_lambda(self, lambda_name):
         print "Deploying lambda [" + lambda_name + "] in " + self.get_account()
-        code = "aws lambda update-function-code --function-name " + lambda_name + " --zip-file fileb://" + lambda_name + ".zip --profile " + self.profile
-        #print code
-        output = subprocess.check_output(code, shell=True)
-        obj = json.loads(output)
-        print " Last Modified: "+obj['LastModified']
-        print " Sha: "+obj['CodeSha256']
-        print " Code Size: "+str(obj['CodeSize'])
+        try:
+            code = "aws lambda update-function-code --function-name " + lambda_name + " --zip-file fileb://" + lambda_name + ".zip --profile " + self.profile
+            #print code
+            output = subprocess.check_output(code, shell=True)
+            obj = json.loads(output)
+            print " Last Modified: "+obj['LastModified']
+            print " Sha: "+obj['CodeSha256']
+            print " Code Size: "+str(obj['CodeSize'])
+        except:
+            print "unable to deploy lambdas from " + self.get_account()
         #print "https://console.aws.amazon.com/lambda/home?region="+regionconfig.get(profile, 'region')+"#/functions/"+lambda_name+"?tab=code"
 
     def _setup_os(self):
