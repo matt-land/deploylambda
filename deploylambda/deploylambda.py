@@ -5,6 +5,7 @@ import wget
 import os
 import subprocess
 import ConfigParser
+import sys
 
 
 class DeployLambda:
@@ -16,6 +17,7 @@ class DeployLambda:
         self._setup_os()
 
     def get_account(self):
+        """get the alias from the account we are using"""
         try:
             account = subprocess.check_output('aws iam list-account-aliases --profile ' + self.profile, shell=True)
             obj = json.loads(account)
@@ -135,3 +137,64 @@ class DeployLambda:
         regionconfig.readfp(open(os.path.expanduser('~') + '/.aws/config'))
         os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 
+    def update_metadata(self, lambda_name):
+        """get the config"""
+        #get current config
+        try:
+            code = "aws lambda get-function-configuration --function " + lambda_name + " --profile " + self.profile
+            rawdata = subprocess.check_output(code, shell=True)
+        except:
+            print "unable to get lambda metadata " + str(sys.exc_info())
+            exit(1)
+        # get skeleton
+        try:
+            code = "aws lambda update-function-configuration --generate-cli-skeleton --profile " + self.profile
+            data = subprocess.check_output(code, shell=True)
+            skeleton = json.loads(data)
+        except:
+            print "unable to get skeleton config " + str(sys.exc_info())
+            exit(1)
+
+        # load our live data into a json we can compare with
+        filename = lambda_name + '-config.json'
+        live_obj = json.loads(rawdata)
+        live_lambda_json = {}
+        for key, value in skeleton.iteritems():
+            if key in live_obj.keys():
+                live_lambda_json[key] = live_obj[key]
+
+        # store on disk if this is first call
+        if not os.path.isfile(lambda_name + '-config.json'):
+            with open(filename, 'w') as f:
+                f.write(json.dumps(live_lambda_json, indent=4))
+                print "backed up metadata as " + filename
+                return
+
+        # check our file is valid json
+        try:
+            with open(filename) as json_file:
+                file_obj = json.load(json_file)
+        except:
+            print "invalid json file detected"
+            exit(1)
+
+        # build our input data from file
+        cli_input_json = {}
+        for key, value in skeleton.iteritems():
+            if key in file_obj.keys():
+                cli_input_json[key] = file_obj[key]
+
+        # compare input file to live file config
+        if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
+            print "No metadata changes detected"
+            return
+
+        print "updating metadata"
+        try:
+            code = "aws lambda update-function-configuration --function " + lambda_name + " --profile " + self.profile + " --cli-input-json " + json.dumps(json.dumps(cli_input_json))
+            data = subprocess.check_output(code, shell=True)
+            # exit(2)
+            # print data
+        except:
+            print "unable to update lambda metadata " + str(sys.exc_info())
+            exit(1)

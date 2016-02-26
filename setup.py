@@ -28,6 +28,7 @@ setup(
                   'list-lambda=deploylambda.command_line:list',
                   'unpack-lambda=deploylambda.command_line:unpack',
                   'update-lambda=deploylambda.command_line:update',
+                  'metadata-lambda=deploylambda.command_line:metadata',
               ]
         },
 )

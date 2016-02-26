@@ -24,8 +24,8 @@ def deploy():
 def update():
     global args
     d = DeployLambda(args.profile)
-    d.create_zip(args.lambda_name)
-    d.deploy_new_lambda(args.lambda_name)
+    zip = d.create_zip(args.lambda_name)
+    d.deploy_new_lambda(args.lambda_name, zip)
     exit(0)
 
 
@@ -57,3 +57,8 @@ def unpack():
     d = DeployLambda(args.profile)
     d.unpack_lamdba(args.lambda_name)
     exit(0)
+
+def metadata():
+    global args
+    d = DeployLambda(args.profile)
+    d.update_metadata(args.lambda_name)

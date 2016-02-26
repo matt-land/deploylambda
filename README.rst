@@ -32,9 +32,10 @@ aws cli must be configured with your account credentials by running `aws configu
 The tool supports multiple aws accounts, choose them with the parameter --profile <profile name>
 
 Example
->>> `list-lambda --profile sandbox` <- uses a non-default AWS profile.
 
-Look at ~/.aws/credentials for available profiles
+>>> `list-lambda --profile sandbox` <-- uses a non-default AWS profile.
+
+Look at ~/.aws/credentials for available profile names
 
 
 Usage
@@ -50,7 +51,7 @@ Usage
 
 >>> `package-lambda my-lambda-name` <-- build a deployment package (zip) of the newest local lambda function
 
-
+>>> `metadata-lambda my-lambda-name` <-- pull down metadata config, or update metadata for a function.
 
 call 'deploy-lambda' from the command line, one folder level above the source code
 
@@ -73,4 +74,5 @@ To start using with exiting lambda functions
 
 Notes
 ------------------
-lambda function name must match the folder name (exactly)
+The tool expects you to be in the current working directory of your lambda. Everything in the current directory will get packed up.
+
