@@ -92,7 +92,11 @@ class DeployLambda:
             response = subprocess.check_output("aws lambda list-functions --profile " + self.profile, shell=True)
             obj = json.loads(response)
             for function in obj['Functions']:
-                print "-> "+function['FunctionName']
+                print "-> " + function['FunctionName']
+                self.function_name = function['FunctionName']
+                aliases = self._list_aliases()
+                for alias in aliases:
+                    print "    " + alias['Name'] + " => " + alias['FunctionVersion']
         except:
             print "unable to list lambdas from " + self.get_account()
 
@@ -207,7 +211,7 @@ class DeployLambda:
 
         aliases = self._list_aliases()
         hasAlias = False
-        for alias in aliases['Aliases'].iteritems():
+        for alias in aliases.iteritems():
             if alias['Name'] == 'tag':
                 hasAlias = True
                 break
@@ -221,7 +225,7 @@ class DeployLambda:
         found_promoted_tag = False
         found_existing_tag = False
         aliases = self._list_aliases()
-        for alias in aliases['Aliases'].iteritems():
+        for alias in aliases.iteritems():
             if alias['Name'] == promoted_name:
                 found_promoted_tag = True
             if alias['Name'] == found_existing_tag:
@@ -273,8 +277,10 @@ class DeployLambda:
         try:
             code = "aws lambda list-aliases --function-name " + self.function_name + " --profile " + self.profile
             data = subprocess.check_output(code, shell=True)
+
         except:
             print "failed to list aliases for function " + str(sys.exc_info())
             exit(1)
-        return json.loads(data)
+        data = json.loads(data)
+        return data['Aliases']
 
