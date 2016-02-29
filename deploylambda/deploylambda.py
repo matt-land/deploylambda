@@ -211,7 +211,7 @@ class DeployLambda:
 
         aliases = self._list_aliases()
         hasAlias = False
-        for alias in aliases.iteritems():
+        for alias in aliases:
             if alias['Name'] == 'tag':
                 hasAlias = True
                 break
@@ -225,7 +225,7 @@ class DeployLambda:
         found_promoted_tag = False
         found_existing_tag = False
         aliases = self._list_aliases()
-        for alias in aliases.iteritems():
+        for alias in aliases:
             if alias['Name'] == promoted_name:
                 found_promoted_tag = True
             if alias['Name'] == found_existing_tag:
