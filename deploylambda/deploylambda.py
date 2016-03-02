@@ -48,14 +48,13 @@ class DeployLambda:
             for file in files:
                 if file == '.DS_Store':
                     continue
-                if file == zipname:
-                    continue
-                if file == lastzipname:
+                #skip zips
+                if '.zip' in file:
                     continue
                 if file.endswith(".pyc"):
                     continue
-                print "adding "+root+"/"+file
-                zf.write(root+"/"+file)
+                print "adding " + root + "/" + file
+                zf.write(root + "/" + file)
                 counter += 1
         zf.close()
         print str(counter) + " files added to "+ zipname
@@ -78,7 +77,7 @@ class DeployLambda:
     def unpack_lamdba(function_name):
         print "Unpacking lambda to local file system as " + function_name
         zipname = function_name + "-last.zip"
-        pathname = "./" + function_name
+        pathname = "./"
         if not os.path.isfile(zipname):
             raise NameError('missing zip file to unpack ' + zipname)
         if os.path.isfile(pathname):

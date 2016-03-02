@@ -18,7 +18,7 @@ setup(
         classifiers=[
           'Programming Language :: Python :: 2.7',
         ],
-        install_requires=['boto', 'wget'],
+        install_requires=['wget'],
         packages=['deploylambda'],
         entry_points={
               'console_scripts': [
