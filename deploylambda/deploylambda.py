@@ -211,7 +211,7 @@ class DeployLambda:
         aliases = self._list_aliases()
         hasAlias = False
         for alias in aliases:
-            if alias['Name'] == 'tag':
+            if alias['Name'] == name:
                 hasAlias = True
                 break
         if (hasAlias):
