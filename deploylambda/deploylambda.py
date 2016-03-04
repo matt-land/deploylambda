@@ -28,17 +28,15 @@ class DeployLambda:
 
     @staticmethod
     def create_zip(function_name):
-        zipname = function_name + '.zip'
-        lastzipname = function_name + '-last.zip'
-        zippath = os.getcwd() + "/" + zipname
-        print "Creating deployment package " + zipname
+        zippath = os.getcwd() + "/../" + function_name + '.zip'
+        print "Creating deployment package " + zippath
 
         #if not os.path.isdir(subpath):
         #    raise NameError('lambda source code folder not found '+lambda_name)
         counter = 0
         if os.path.isfile(zippath):
             os.unlink(zippath)
-        zf = zipfile.ZipFile(zipname, mode='w', compression=zipfile.ZIP_DEFLATED)
+        zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
         print os.getcwd() + " is current"
         for root, dirs, files in os.walk('.', topdown=True):
             if '.git' in dirs:
@@ -57,11 +55,11 @@ class DeployLambda:
                 zf.write(root + "/" + file)
                 counter += 1
         zf.close()
-        print str(counter) + " files added to "+ zipname
+        print str(counter) + " files added to "+ zippath
         return zippath
 
     def backup_old_lambda(self):
-        name = self.function_name + "-last.zip"
+        name = os.getcwd() + '/../' + self.function_name + "-last.zip"
         print "Backing up existing lambda as " + name
         if os.path.isfile(name):
             os.unlink(name)
@@ -72,12 +70,13 @@ class DeployLambda:
             print ''
         except:
             print "unable to back up old lambda"
+            exit(1)
 
     @staticmethod
     def unpack_lamdba(function_name):
         print "Unpacking lambda to local file system as " + function_name
         zipname = function_name + "-last.zip"
-        pathname = "./"
+        pathname = os.getcwd() + "/../"
         if not os.path.isfile(zipname):
             raise NameError('missing zip file to unpack ' + zipname)
         if os.path.isfile(pathname):
