@@ -37,7 +37,7 @@ class DeployLambda:
         if os.path.isfile(zippath):
             os.unlink(zippath)
         zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
-        print os.getcwd() + " is current"
+        print path + " is current"
         for root, dirs, files in os.walk('.', topdown=True):
             if '.git' in dirs:
                 dirs.remove('.git')
