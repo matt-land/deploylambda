@@ -13,8 +13,8 @@ args = parser.parse_args()
 def deploy():
     global args
     d = DeployLambda(args.profile, args.lambda_name)
-    d.backup_old_lambda()
-    zip = DeployLambda.create_zip(args.lambda_name)
+    d.backup_old_lambda(os.getcwd())
+    zip = DeployLambda.create_zip(args.lambda_name, os.getcwd())
     d.deploy_new_lambda(zip)
     exit(0)
 
@@ -22,23 +22,23 @@ def deploy():
 def update():
     global args
     d = DeployLambda(args.profile, args.lambda_name)
-    zip = DeployLambda.create_zip(args.lambda_name)
+    zip = DeployLambda.create_zip(args.lambda_name, os.getcwd())
     d.deploy_new_lambda(zip)
     exit(0)
 
 
 def package():
     global args
-    DeployLambda.create_zip(args.lambda_name)
+    DeployLambda.create_zip(args.lambda_name, os.getcwd())
     exit(0)
 
 
 def backup():
     global args
     d = DeployLambda(args.profile, args.lambda_name)
-    d.backup_old_lambda()
+    d.backup_old_lambda(os.getcwd())
     if not os.path.isfile('./' + args.lambda_name):
-        DeployLambda.unpack_lamdba(args.lambda_name)
+        DeployLambda.unpack_lamdba(args.lambda_name, os.getcwd())
     exit(0)
 
 
@@ -51,7 +51,7 @@ def list():
 
 def unpack():
     global args
-    DeployLambda.unpack_lamdba(args.lambda_name)
+    DeployLambda.unpack_lamdba(args.lambda_name, os.getcwd())
     exit(0)
 
 

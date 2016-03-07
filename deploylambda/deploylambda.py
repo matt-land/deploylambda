@@ -27,8 +27,8 @@ class DeployLambda:
             return '[unknown account]'
 
     @staticmethod
-    def create_zip(function_name):
-        zippath = os.getcwd() + "/../" + function_name + '.zip'
+    def create_zip(function_name, path):
+        zippath = path + "/../" + function_name + '.zip'
         print "Creating deployment package " + zippath
 
         #if not os.path.isdir(subpath):
@@ -58,8 +58,8 @@ class DeployLambda:
         print str(counter) + " files added to "+ zippath
         return zippath
 
-    def backup_old_lambda(self):
-        name = os.getcwd() + '/../' + self.function_name + "-last.zip"
+    def backup_old_lambda(self, path):
+        name = path + '/../' + self.function_name + "-last.zip"
         print "Backing up existing lambda as " + name
         if os.path.isfile(name):
             os.unlink(name)
@@ -73,10 +73,10 @@ class DeployLambda:
             exit(1)
 
     @staticmethod
-    def unpack_lamdba(function_name):
+    def unpack_lamdba(function_name, path):
         print "Unpacking lambda to local file system as " + function_name
         zipname = function_name + "-last.zip"
-        pathname = os.getcwd() + "/../"
+        pathname = path + "/../"
         if not os.path.isfile(zipname):
             raise NameError('missing zip file to unpack ' + zipname)
         if os.path.isfile(pathname):
