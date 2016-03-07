@@ -183,8 +183,9 @@ class DeployLambda:
             exit(1)
 
         # build our input data from file
-        cli_input_json = dict(skeleton.items() + live_lambda_json.items())
-        print json.dumps(live_lambda_json, indent=4)
+        cli_input_json = dict(skeleton.items() + file_obj.items())
+        cli_input_json['VpcConfig'].pop('VpcId')
+        #print json.dumps(live_lambda_json, indent=4)
 
         # compare input file to live file config
         if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
