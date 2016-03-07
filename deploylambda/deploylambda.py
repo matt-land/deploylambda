@@ -226,9 +226,9 @@ class DeployLambda:
         for alias in aliases:
             if alias['Name'] == promoted_name:
                 found_promoted_tag = True
-            if alias['Name'] == found_existing_tag:
+            if alias['Name'] == existing_name:
                 found_existing_tag = True
-                version = alias['Version']
+                version = alias['FunctionVersion']
             if found_existing_tag and found_promoted_tag:
                 break
         if not found_existing_tag:
@@ -281,4 +281,5 @@ class DeployLambda:
             exit(1)
         data = json.loads(data)
         return data['Aliases']
+
 
