@@ -142,8 +142,7 @@ class DeployLambda:
         os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 
     def update_metadata(self):
-        """get the config"""
-        #get current config
+        """get the current config"""
         try:
             code = "aws lambda get-function-configuration --function " + self.function_name + " --profile " + self.profile
             rawdata = subprocess.check_output(code, shell=True)
@@ -183,11 +182,9 @@ class DeployLambda:
             exit(1)
 
         # build our input data from file
-        cli_input_json = {}
-        for key, value in skeleton.iteritems():
-            if key in file_obj.keys():
-                cli_input_json[key] = file_obj[key]
-
+        cli_input_json = dict(skeleton.items() + live_lambda_json.items())
+        print json.dumps(live_lambda_json, indent=4)
+        
         # compare input file to live file config
         if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
             print "No metadata changes detected"
