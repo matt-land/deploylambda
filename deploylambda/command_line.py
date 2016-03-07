@@ -58,7 +58,7 @@ def unpack():
 def metadata():
     global args
     d = DeployLambda(args.profile, args.lambda_name)
-    d.update_metadata()
+    d.update_metadata(os.getcwd())
 
 
 def alias():

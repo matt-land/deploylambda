@@ -52,7 +52,7 @@ class DeployLambda:
                     continue
                 if file.endswith(".pyc"):
                     continue
-                print "adding " + root + "/" + file
+                #print "adding " + root + "/" + file
                 zf.write(root + "/" + file)
                 counter += 1
         zf.close()
@@ -141,7 +141,7 @@ class DeployLambda:
         regionconfig.readfp(open(os.path.expanduser('~') + '/.aws/config'))
         os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 
-    def update_metadata(self):
+    def update_metadata(self, path):
         """get the current config"""
         try:
             code = "aws lambda get-function-configuration --function " + self.function_name + " --profile " + self.profile
@@ -167,7 +167,8 @@ class DeployLambda:
                 live_lambda_json[key] = live_obj[key]
 
         # store on disk if this is first call
-        if not os.path.isfile(self.function_name + '-config.json'):
+        config_file = path + '/' + self.function_name + '-config.json'
+        if not os.path.isfile(config_file):
             with open(filename, 'w') as f:
                 f.write(json.dumps(live_lambda_json, indent=4))
                 print "backed up metadata as " + filename
@@ -184,7 +185,7 @@ class DeployLambda:
         # build our input data from file
         cli_input_json = dict(skeleton.items() + live_lambda_json.items())
         print json.dumps(live_lambda_json, indent=4)
-        
+
         # compare input file to live file config
         if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
             print "No metadata changes detected"
@@ -255,7 +256,7 @@ class DeployLambda:
             print "unable to create alias to published version " + str(sys.exc_info())
             exit(1)
         response = json.loads(data)
-        print "created alias " + response['Name'] + " pointing to " + version + " of " + self.function_name
+        print "created alias [" + response['Name'] + "] pointing to version [" + version + "] of [" + self.function_name + "]"
         return response
 
     def _update_alias(self, name, version):
