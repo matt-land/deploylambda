@@ -22,15 +22,15 @@ setup(
         packages=['deploylambda'],
         entry_points={
               'console_scripts': [
-                  'deploy-lambda=deploylambda.command_line:deploy',
-                  'package-lambda=deploylambda.command_line:package',
-                  'backup-lambda=deploylambda.command_line:backup',
-                  'list-lambda=deploylambda.command_line:list',
-                  'unpack-lambda=deploylambda.command_line:unpack',
-                  'update-lambda=deploylambda.command_line:update',
-                  'metadata-lambda=deploylambda.command_line:metadata',
-                  'alias-lambda=deploylambda.command_line:alias',
-                  'promote-lambda=deploylambda.command_line:promote',
+                  'deploy-lambda=deploylambda.command_line:deploy_lambda',
+                  'package-lambda=deploylambda.command_line:package_lambda',
+                  'backup-lambda=deploylambda.command_line:backup_lambda',
+                  'list-lambda=deploylambda.command_line:list_lambda',
+                  'unpack-lambda=deploylambda.command_line:unpack_lambda',
+                  'update-lambda=deploylambda.command_line:update_lambda',
+                  'metadata-lambda=deploylambda.command_line:metadata_lambda',
+                  'alias-lambda=deploylambda.command_line:alias_lambda',
+                  'promote-lambda=deploylambda.command_line:promote_lambda',
               ]
         },
 )

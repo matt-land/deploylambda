@@ -6,7 +6,6 @@ import subprocess
 import ConfigParser
 import sys
 
-
 class DeployLambda:
 
     profile = ''
@@ -29,7 +28,7 @@ class DeployLambda:
     @staticmethod
     def create_zip(function_name, path):
         zippath = path + "/../" + function_name + '.zip'
-        print "Creating deployment package " + zippath
+        #print "Creating deployment package " + zippath
 
         #if not os.path.isdir(subpath):
         #    raise NameError('lambda source code folder not found '+lambda_name)
@@ -37,7 +36,8 @@ class DeployLambda:
         if os.path.isfile(zippath):
             os.unlink(zippath)
         zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
-        print os.getcwd() + " is current"
+        #print path + " is current"
+        os.chdir(path)
         for root, dirs, files in os.walk('.', topdown=True):
             if '.git' in dirs:
                 dirs.remove('.git')
@@ -51,11 +51,11 @@ class DeployLambda:
                     continue
                 if file.endswith(".pyc"):
                     continue
-                print "adding " + root + "/" + file
+                #print "adding " + root + "/" + file
                 zf.write(root + "/" + file)
                 counter += 1
         zf.close()
-        print str(counter) + " files added to "+ zippath
+        #print str(counter) + " files added to "+ zippath
         return zippath
 
     def backup_old_lambda(self, path):
@@ -69,8 +69,8 @@ class DeployLambda:
             wget.download(obj['Code']['Location'], name)
             print ''
         except:
-            print "unable to back up old lambda"
-            exit(1)
+            raise Exception( "unable to back up old lambda " + str(sys.exc_info()))
+
 
     @staticmethod
     def unpack_lamdba(function_name, path):
@@ -85,43 +85,42 @@ class DeployLambda:
         zf.extractall(pathname)
 
     def list_lambdas(self):
-        print "Available lambda functions in " + self.get_account()
+        print "Lambda functions in  [ " + self.get_account() + " ]"
+        command = "aws lambda list-functions --profile " + self.profile
         try:
-            response = subprocess.check_output("aws lambda list-functions --profile " + self.profile, shell=True)
+            response = subprocess.check_output(command, shell=True)
             obj = json.loads(response)
             for function in obj['Functions']:
-                print "-> " + function['FunctionName']
+                print " [ " + function['FunctionName'] + " ]"
                 self.function_name = function['FunctionName']
                 aliases = self._list_aliases()
                 for alias in aliases:
-                    print "    " + alias['Name'] + " => " + alias['FunctionVersion']
+                    print "   - [" + alias['Name'] + "] -> v" + alias['FunctionVersion']
         except:
-            print "unable to list lambdas from " + self.get_account()
+            raise Exception("unable to list lambdas from [" + self.get_account() + "] using " + command + " " + str(sys.exc_info()))
 
     def deploy_new_lambda(self, zippath):
-        print "Deploying lambda [" + self.function_name + "] in " + self.get_account()
+        print "Deploying lambda [ " + self.function_name + " ] in [ " + self.get_account() + " ]"
         try:
             code = "aws lambda update-function-code --function-name " + self.function_name + " --zip-file fileb://" + zippath + " --profile " + self.profile
             #print code
             output = subprocess.check_output(code, shell=True)
             obj = json.loads(output)
-            print " Last Modified: "+obj['LastModified']
+            #print " Last Modified: "+obj['LastModified']
             print " Sha: "+obj['CodeSha256']
-            print " Code Size: "+str(obj['CodeSize'])
-        except:
-            print "unable to deploy lambdas from " + self.get_account()
-        #print "https://console.aws.amazon.com/lambda/home?region="+regionconfig.get(profile, 'region')+"#/functions/"+lambda_name+"?tab=code"
+            #print " Code Size: " + str(obj['CodeSize'])
+        except Exception, e:
+            raise Exception("unable to deploy lambdas from [" + self.get_account()+']')
 
     def _setup_os(self):
         try:
             subprocess.check_output("command -v aws", shell=True)
-        except:
-            print 'error: install aws cli tools'
-            exit(1)
+        except Exception, e:
+            raise Exception( 'error: install aws cli tools')
 
         if not os.path.isfile(os.path.expanduser('~') + '/.aws/credentials'):
-            print 'please run aws configure, missing credentials'
-            exit(1)
+            raise Exception('please run aws configure, missing credentials')
+
 
         userconfig = ConfigParser.ConfigParser()
         userconfig.readfp(open(os.path.expanduser('~') + '/.aws/credentials'))
@@ -129,8 +128,7 @@ class DeployLambda:
         os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(self.profile, 'aws_secret_access_key')
 
         if not os.path.isfile(os.path.expanduser('~') + '/.aws/credentials'):
-            print 'please run aws configure, missing config'
-            exit(1)
+            raise Exception( 'please run aws configure, missing config')
 
         if self.profile != 'default':
             profile = 'profile ' + self.profile
@@ -140,23 +138,20 @@ class DeployLambda:
         regionconfig.readfp(open(os.path.expanduser('~') + '/.aws/config'))
         os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 
-    def update_metadata(self):
-        """get the config"""
-        #get current config
+    def update_metadata(self, path):
+        """get the current config"""
         try:
             code = "aws lambda get-function-configuration --function " + self.function_name + " --profile " + self.profile
             rawdata = subprocess.check_output(code, shell=True)
         except:
-            print "unable to get lambda metadata " + str(sys.exc_info())
-            exit(1)
+            raise Exception("unable to get lambda metadata " + str(sys.exc_info()))
         # get skeleton
         try:
             code = "aws lambda update-function-configuration --generate-cli-skeleton --profile " + self.profile
             data = subprocess.check_output(code, shell=True)
             skeleton = json.loads(data)
         except:
-            print "unable to get skeleton config " + str(sys.exc_info())
-            exit(1)
+            raise Exception("unable to get skeleton config " + str(sys.exc_info()))
 
         # load our live data into a json we can compare with
         filename = self.function_name + '-config.json'
@@ -167,7 +162,8 @@ class DeployLambda:
                 live_lambda_json[key] = live_obj[key]
 
         # store on disk if this is first call
-        if not os.path.isfile(self.function_name + '-config.json'):
+        config_file = path + '/' + self.function_name + '-config.json'
+        if not os.path.isfile(config_file):
             with open(filename, 'w') as f:
                 f.write(json.dumps(live_lambda_json, indent=4))
                 print "backed up metadata as " + filename
@@ -178,29 +174,26 @@ class DeployLambda:
             with open(filename) as json_file:
                 file_obj = json.load(json_file)
         except:
-            print "invalid json file detected"
-            exit(1)
+            raise Exception("invalid json file detected")
 
         # build our input data from file
-        cli_input_json = {}
-        for key, value in skeleton.iteritems():
-            if key in file_obj.keys():
-                cli_input_json[key] = file_obj[key]
+        cli_input_json = dict(skeleton.items() + file_obj.items())
+        #pop this key if seen
+        if 'VpcId' in cli_input_json['VpcConfig']:
+            cli_input_json['VpcConfig'].pop('VpcId')
+
 
         # compare input file to live file config
         if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
-            print "No metadata changes detected"
+            #print "No metadata changes detected"
             return
 
-        print "updating metadata"
+        #print "updating metadata"
         try:
             code = "aws lambda update-function-configuration --function " + self.function_name + " --profile " + self.profile + " --cli-input-json " + json.dumps(json.dumps(cli_input_json))
             data = subprocess.check_output(code, shell=True)
-            # exit(2)
-            # print data
         except:
-            print "unable to update lambda metadata " + str(sys.exc_info())
-            exit(1)
+            raise Exception("unable to update lambda metadata " + str(sys.exc_info()))
 
     def version_and_create_alias(self, name):
         """publish a version from $LATEST and add an alias"""
@@ -213,7 +206,7 @@ class DeployLambda:
             if alias['Name'] == name:
                 hasAlias = True
                 break
-        if (hasAlias):
+        if hasAlias:
             self._update_alias(name, version)
         else:
             self._create_alias(name, version)
@@ -226,14 +219,14 @@ class DeployLambda:
         for alias in aliases:
             if alias['Name'] == promoted_name:
                 found_promoted_tag = True
-            if alias['Name'] == found_existing_tag:
+            if alias['Name'] == existing_name:
                 found_existing_tag = True
-                version = alias['Version']
+                version = alias['FunctionVersion']
             if found_existing_tag and found_promoted_tag:
                 break
         if not found_existing_tag:
-            print "can not find exiting alias " + existing_name
-            exit(1)
+            raise Exception("can not find exiting alias " + existing_name)
+
         if not found_promoted_tag:
             self._create_alias(promoted_name, version)
         else:
@@ -244,8 +237,8 @@ class DeployLambda:
             code = "aws lambda publish-version --function-name " + self.function_name + " --profile " + self.profile
             data = subprocess.check_output(code, shell=True)
         except:
-            print "unable to publish lambda version " + str(sys.exc_info())
-            exit(1)
+            raise Exception("unable to publish lambda version " + str(sys.exc_info()))
+
         response = json.loads(data)
         return response['Version']
 
@@ -254,10 +247,9 @@ class DeployLambda:
             code = "aws lambda create-alias --function-version " + version + " --function-name " + self.function_name + " --name " + name + " --profile " + self.profile
             data = subprocess.check_output(code, shell=True)
         except:
-            print "unable to create alias to published version " + str(sys.exc_info())
-            exit(1)
+            raise Exception("unable to create alias to published version " + str(sys.exc_info()))
         response = json.loads(data)
-        print "created alias " + response['Name'] + " pointing to " + version + " of " + self.function_name
+        print "Created [ " + response['Name'] + " ] pointing to [ v" + version + " ] of [ " + self.function_name + " ]"
         return response
 
     def _update_alias(self, name, version):
@@ -265,20 +257,19 @@ class DeployLambda:
             code = "aws lambda update-alias --function-version " + version + " --function-name " + self.function_name + " --name " + name + " --profile " + self.profile
             data = subprocess.check_output(code, shell=True)
         except:
-            print "unable to create alias to published version " + str(sys.exc_info())
-            exit(1)
+            raise Exception("unable to create alias to published version " + str(sys.exc_info()))
+
         response = json.loads(data)
-        print "created alias " + response['Name'] + " pointing to " + version + " of " + self.function_name
+        print "Updated [ " + response['Name'] + " ] pointing to [ v" + version + " ] of [ " + self.function_name + " ]"
         return response
 
     def _list_aliases(self):
         try:
             code = "aws lambda list-aliases --function-name " + self.function_name + " --profile " + self.profile
             data = subprocess.check_output(code, shell=True)
-
         except:
-            print "failed to list aliases for function " + str(sys.exc_info())
-            exit(1)
+            raise Exception("failed to list aliases for function " + str(sys.exc_info()))
         data = json.loads(data)
         return data['Aliases']
+
 
