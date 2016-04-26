@@ -27,7 +27,8 @@ class DeployLambda:
 
     @staticmethod
     def create_venv_zip(function_name, path, extrapath=''):
-        path = path + '/'
+        if not path.endswith('/'):
+            path = path + '/'
         extrapaths = ['venv/lib/python2.7/site-packages', 'venv/src']
         if extrapath and extrapath is not '.':
             extrapaths.append(extrapath)
