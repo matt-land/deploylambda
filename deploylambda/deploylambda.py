@@ -26,17 +26,55 @@ class DeployLambda:
             return '[unknown account]'
 
     @staticmethod
+    def create_venv_zip(function_name, path, extrapath=''):
+        path = path + '/'
+        extrapaths = ['venv/lib/python2.7/site-packages', 'venv/src']
+        if extrapath and extrapath is not '.':
+            extrapaths.append(extrapath)
+        function_name = function_name.replace('.py', '', 1)
+        zippath = path + "../" + function_name + '.zip'
+        if os.path.isfile(zippath):
+            os.unlink(zippath)
+        counter = 0
+        os.chdir(path)
+        zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
+
+        if not os.path.isfile(function_name + '.py'):
+            raise Exception('no such file ' + path + function_name + '.py')
+        zf.write(function_name + '.py')
+        if os.path.isfile(function_name + '-config.json'): #add config if we have it
+            zf.write(function_name + '-config.json')
+
+        for subpath in extrapaths:
+            os.chdir(path + subpath)
+            for root, dirs, files in os.walk('.', topdown=True):
+                if '.git' in dirs:
+                    dirs.remove('.git')
+
+                for file in files:
+                    if root.startswith('./boto'): #for free on aws
+                        continue
+                    if  root.startswith('./psycopg2') and 'aws' not in subpath: #psycopg2 from aws folder
+                        continue
+                    if file == '.DS_Store':
+                        continue
+                    if file.endswith('.zip'): #skip zips
+                        continue
+                    if file.endswith(".pyc"):
+                        continue
+                    zf.write(root + "/" + file)
+                    counter += 1
+        zf.close()
+        print str(counter) + " files added to "+ zippath
+        return zippath
+
+    @staticmethod
     def create_zip(function_name, path):
         zippath = path + "/../" + function_name + '.zip'
-        #print "Creating deployment package " + zippath
-
-        #if not os.path.isdir(subpath):
-        #    raise NameError('lambda source code folder not found '+lambda_name)
         counter = 0
         if os.path.isfile(zippath):
             os.unlink(zippath)
         zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
-        #print path + " is current"
         os.chdir(path)
         for root, dirs, files in os.walk('.', topdown=True):
             if '.git' in dirs:
@@ -46,12 +84,10 @@ class DeployLambda:
             for file in files:
                 if file == '.DS_Store':
                     continue
-                #skip zips
-                if '.zip' in file:
+                if file.endswith('.zip'): #skip zips
                     continue
-                if file.endswith(".pyc"):
+                if file.endswith(".pyc"): #skip compiled
                     continue
-                #print "adding " + root + "/" + file
                 zf.write(root + "/" + file)
                 counter += 1
         zf.close()

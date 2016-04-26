@@ -22,6 +22,7 @@ setup(
         packages=['deploylambda'],
         entry_points={
               'console_scripts': [
+                  'package-venv-lambda=deploylambda.command_line:package_venv_lambda',
                   'deploy-lambda=deploylambda.command_line:deploy_lambda',
                   'package-lambda=deploylambda.command_line:package_lambda',
                   'backup-lambda=deploylambda.command_line:backup_lambda',
