@@ -164,7 +164,7 @@ class DeployLambda:
         os.environ['AWS_ACCESS_KEY_ID'] = userconfig.get(self.profile, 'aws_access_key_id')
         os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(self.profile, 'aws_secret_access_key')
 
-        if not os.path.isfile(os.path.expanduser('~') + '/.aws/credentials'):
+        if not os.path.isfile(os.path.expanduser('~') + '/.aws/config'):
             raise Exception( 'please run aws configure, missing config')
 
         if self.profile != 'default':
@@ -199,19 +199,21 @@ class DeployLambda:
                 live_lambda_json[key] = live_obj[key]
 
         # store on disk if this is first call
+        if not path.endswith('/'):
+            path = path + '/'
         config_file = path + '/' + self.function_name + '-config.json'
         if not os.path.isfile(config_file):
-            with open(filename, 'w') as f:
+            with open(config_file, 'w') as f:
                 f.write(json.dumps(live_lambda_json, indent=4))
-                print "backed up metadata as " + filename
+                print "backed up metadata as " + config_file
                 return
 
         # check our file is valid json
         try:
-            with open(filename) as json_file:
+            with open(config_file) as json_file:
                 file_obj = json.load(json_file)
         except:
-            raise Exception("invalid json file detected " + filename)
+            raise Exception("invalid json file detected " + config_file)
 
         # build our input data from file
         cli_input_json = dict(skeleton.items() + file_obj.items())
