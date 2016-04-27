@@ -211,7 +211,7 @@ class DeployLambda:
             with open(filename) as json_file:
                 file_obj = json.load(json_file)
         except:
-            raise Exception("invalid json file detected")
+            raise Exception("invalid json file detected ".filename)
 
         # build our input data from file
         cli_input_json = dict(skeleton.items() + file_obj.items())
