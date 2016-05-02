@@ -26,48 +26,60 @@ class DeployLambda:
             return '[unknown account]'
 
     @staticmethod
-    def create_venv_zip(function_name, path, extrapath=''):
+    def create_venv_zip(function_name, path, extra_path=''):
+        droppath = os.getcwd() #drop in cwd
         if not path.endswith('/'):
             path = path + '/'
-        extrapaths = ['venv/lib/python2.7/site-packages', 'venv/src']
-        if extrapath and extrapath is not '.':
-            extrapaths.append(extrapath)
-        function_name = function_name.replace('.py', '', 1)
-        zippath = path + "../" + function_name + '.zip'
-        if os.path.isfile(zippath):
-            os.unlink(zippath)
-        counter = 0
-        os.chdir(path)
-        zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
+        extra_paths = ['venv/lib/python2.7/site-packages']
+        # add installed packages
+        if extra_path and extra_path is not '.':
+            extra_paths.append(extra_path)
+        try:
+            # add in venv/src editable packages
+            for root, dirs, files in os.walk('./venv/src'):
+                for dir in dirs:
+                    extra_paths.append('venv/src/' + dir)
+            print(extra_paths)
+            function_name = function_name.replace('.py', '', 1)
+            zippath = droppath + "../" + function_name + '.zip'
+            if os.path.isfile(zippath):
+                os.unlink(zippath)
+            counter = 0
+            os.chdir(path)
+            zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
 
-        if not os.path.isfile(function_name + '.py'):
-            raise Exception('no such file ' + path + function_name + '.py')
-        zf.write(function_name + '.py')
-        if os.path.isfile(function_name + '-config.json'): #add config if we have it
-            zf.write(function_name + '-config.json')
+            if not os.path.isfile(function_name + '.py'):
+                raise Exception('no such file ' + path + function_name + '.py')
+            zf.write(function_name + '.py')
+            if os.path.isfile(function_name + '-config.json'): #add config if we have it
+                zf.write(function_name + '-config.json')
 
-        for subpath in extrapaths:
-            os.chdir(path + subpath)
-            for root, dirs, files in os.walk('.', topdown=True):
-                if '.git' in dirs:
-                    dirs.remove('.git')
+            for subpath in extra_paths:
+                os.chdir(path + subpath)
+                for root, dirs, files in os.walk('.', topdown=True):
+                    if '.git' in dirs:
+                        dirs.remove('.git')
 
-                for file in files:
-                    if root.startswith('./boto'): #for free on aws
-                        continue
-                    if  root.startswith('./psycopg2') and 'aws' not in subpath: #psycopg2 from aws folder
-                        continue
-                    if file == '.DS_Store':
-                        continue
-                    if file.endswith('.zip'): #skip zips
-                        continue
-                    if file.endswith(".pyc"):
-                        continue
-                    zf.write(root + "/" + file)
-                    counter += 1
-        zf.close()
-        print str(counter) + " files added to "+ zippath
-        return zippath
+                    for file in files:
+                        if root.startswith('./boto'): #for free on aws
+                            continue
+                        if  root.startswith('./psycopg2') and 'aws' not in subpath: #psycopg2 from aws folder
+                            continue
+                        if file == '.DS_Store':
+                            continue
+                        if file.endswith('.zip'): #skip zips
+                            continue
+                        if file.endswith(".pyc"):
+                            continue
+                        zf.write(root + "/" + file)
+                        counter += 1
+            zf.close()
+            print str(counter) + " files added to " + zippath
+            return zippath
+        except Exception as e:
+            raise e
+        finally:
+            os.chdir(droppath)
 
     @staticmethod
     def create_zip(function_name, path):
