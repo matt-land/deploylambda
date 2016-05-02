@@ -28,6 +28,8 @@ class DeployLambda:
     @staticmethod
     def create_venv_zip(function_name, path, extra_path=''):
         droppath = os.getcwd() #drop in cwd
+        if not droppath.endswith('/'):
+            droppath = path + "/"
         if not path.endswith('/'):
             path = path + '/'
         extra_paths = ['venv/lib/python2.7/site-packages']
