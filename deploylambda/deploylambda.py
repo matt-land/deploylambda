@@ -41,7 +41,6 @@ class DeployLambda:
             src_dirs = next(os.walk(path + 'venv/src'))[1]
             for dir in src_dirs:
                 extra_paths.append('venv/src/' + dir)
-            print(extra_paths)
             function_name = function_name.replace('.py', '', 1)
             zippath = droppath + "../" + function_name + '.zip'
             if os.path.isfile(zippath):
