@@ -62,9 +62,7 @@ class DeployLambda:
                         dirs.remove('.git')
 
                     for file in files:
-                        if root.startswith('./boto'): #for free on aws
-                            continue
-                        if  root.startswith('./psycopg2') and 'aws' not in subpath: #psycopg2 from aws folder
+                        if root.startswith('./psycopg2') and 'aws' not in subpath: #psycopg2 from aws folder
                             continue
                         if file == '.DS_Store':
                             continue
