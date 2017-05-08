@@ -202,10 +202,12 @@ class DeployLambda:
             except KeyError:
                 del skeleton[config_key]
         # build our input data from file
-        return dict(skeleton.items() + config.items())
-        # pop this key if seen
-        #if 'VpcId' in cli_input_json['VpcConfig']:
-        #   cli_input_json['VpcConfig'].pop('VpcId')
+        # pop this sub-tree key if seen, its not permitted
+        config = dict(skeleton.items() + config.items())
+        if 'VpcId' in config['VpcConfig']:
+            config['VpcConfig'].pop('VpcId')
+
+        return config
 
     def update_metadata(self, path):
         """get the current config"""
