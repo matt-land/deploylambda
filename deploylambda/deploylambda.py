@@ -56,7 +56,11 @@ class DeployLambda:
                 raise Exception('required config file not found: {}{}.py'.format(path, function_name))
             repo_files = os.listdir(path)
             for repo_file in repo_files:
-                if repo_file.startwith(function) and not repo_file.endswith('.pyc'):
+                if repo_file.endswith('.pyc'):
+                    continue
+                if os.path.isdir(os.path.join(path, repo_file)):
+                    continue
+                if repo_file.startswith(function):
                     zf.write(repo_file)
 
             for subpath in extra_paths:
