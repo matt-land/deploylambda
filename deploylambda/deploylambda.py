@@ -204,7 +204,7 @@ class DeployLambda:
         # build our input data from file
         # pop this sub-tree key if seen, its not permitted
         config = dict(skeleton.items() + config.items())
-        if 'VpcId' in config['VpcConfig']:
+        if 'VpcConfig' in config and 'VpcId' in config['VpcConfig']:
             config['VpcConfig'].pop('VpcId')
 
         return config
