@@ -1,0 +1,29 @@
+{
+  "FunctionName": "",
+  "Role": "",
+  "Handler": "",
+  "Description": "",
+  "Timeout": 0,
+  "MemorySize": 0,
+  "VpcConfig": {
+    "SubnetIds": [
+      ""
+    ],
+    "SecurityGroupIds": [
+      ""
+    ]
+  },
+  "Environment": {
+    "Variables": {
+      "KeyName": ""
+    }
+  },
+  "Runtime": "",
+  "DeadLetterConfig": {
+    "TargetArn": ""
+  },
+  "KMSKeyArn": "",
+  "TracingConfig": {
+    "Mode": ""
+  }
+}

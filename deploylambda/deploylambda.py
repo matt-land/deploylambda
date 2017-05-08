@@ -189,6 +189,20 @@ class DeployLambda:
         regionconfig.readfp(open(os.path.expanduser('~') + '/.aws/config'))
         os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 
+    @staticmethod
+    def _build_metadata(skeleton, config):
+        # remove empty trees we are not setting
+        for config_key in ['KMSKeyArn', 'Environment', 'DeadLetterConfig', 'TracingConfig', 'VpcConfig']:
+            try:
+                config[config_key]
+            except KeyError:
+                del skeleton[config_key]
+        # build our input data from file
+        return dict(skeleton.items() + config.items())
+        # pop this key if seen
+        #if 'VpcId' in cli_input_json['VpcConfig']:
+        #   cli_input_json['VpcConfig'].pop('VpcId')
+
     def update_metadata(self, path):
         """get the current config"""
         try:
@@ -229,12 +243,7 @@ class DeployLambda:
         except:
             raise Exception("invalid json file detected " + config_file)
 
-        # build our input data from file
-        cli_input_json = dict(skeleton.items() + file_obj.items())
-        # pop this key if seen
-        if 'VpcId' in cli_input_json['VpcConfig']:
-            cli_input_json['VpcConfig'].pop('VpcId')
-
+        cli_input_json = DeployLambda._build_metadata(skeleton, file_obj)
 
         # compare input file to live file config
         if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
@@ -247,6 +256,9 @@ class DeployLambda:
             data = subprocess.check_output(code, shell=True)
         except:
             raise Exception("unable to update lambda metadata " + str(sys.exc_info()))
+
+
+
 
     def version_and_create_alias(self, name):
         """publish a version from $LATEST and add an alias"""
