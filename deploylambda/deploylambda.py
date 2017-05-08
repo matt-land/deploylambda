@@ -60,7 +60,7 @@ class DeployLambda:
                     continue
                 if os.path.isdir(os.path.join(path, repo_file)):
                     continue
-                if repo_file.startswith(function):
+                if repo_file.startswith(function_name):
                     zf.write(repo_file)
 
             for subpath in extra_paths:
