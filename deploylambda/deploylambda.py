@@ -6,6 +6,7 @@ import subprocess
 import ConfigParser
 import sys
 
+
 class DeployLambda:
 
     profile = ''
@@ -27,7 +28,7 @@ class DeployLambda:
 
     @staticmethod
     def create_venv_zip(function_name, path, extra_path=''):
-        droppath = os.getcwd() #drop in cwd
+        droppath = os.getcwd() # drop in cwd
         if not droppath.endswith('/'):
             droppath = path + "/"
         if not path.endswith('/'):
@@ -49,11 +50,14 @@ class DeployLambda:
             os.chdir(path)
             zf = zipfile.ZipFile(zippath, mode='w', compression=zipfile.ZIP_DEFLATED)
 
-            if not os.path.isfile(function_name + '.py'):
-                raise Exception('no such file ' + path + function_name + '.py')
-            zf.write(function_name + '.py')
-            if os.path.isfile(function_name + '-config.json'): #add config if we have it
-                zf.write(function_name + '-config.json')
+            if not os.path.isfile('{}.py'.format(function_name)):
+                raise Exception('no such file: {}{}.py'.format(path, function_name))
+            if not os.path.isfile('{}-config.json'.format(function_name)):
+                raise Exception('required config file not found: {}{}.py'.format(path, function_name))
+            repo_files = os.listdir(path)
+            for repo_file in repo_files:
+                if repo_file.startwith(function) and not repo_file.endswith('.pyc'):
+                    zf.write(repo_file)
 
             for subpath in extra_paths:
                 os.chdir(path + subpath)
@@ -62,11 +66,11 @@ class DeployLambda:
                         dirs.remove('.git')
 
                     for file in files:
-                        if root.startswith('./psycopg2') and 'aws' not in subpath: #psycopg2 from aws folder
+                        if root.startswith('./psycopg2') and 'aws' not in subpath: # psycopg2 from aws folder
                             continue
                         if file == '.DS_Store':
                             continue
-                        if file.endswith('.zip'): #skip zips
+                        if file.endswith('.zip'): # skip zips
                             continue
                         if file.endswith(".pyc"):
                             continue
@@ -103,7 +107,7 @@ class DeployLambda:
                 zf.write(root + "/" + file)
                 counter += 1
         zf.close()
-        #print str(counter) + " files added to "+ zippath
+        # print str(counter) + " files added to "+ zippath
         return zippath
 
     def backup_old_lambda(self, path):
@@ -151,12 +155,12 @@ class DeployLambda:
         print "Deploying lambda [ " + self.function_name + " ] in [ " + self.get_account() + " ]"
         try:
             code = "aws lambda update-function-code --function-name " + self.function_name + " --zip-file fileb://" + zippath + " --profile " + self.profile
-            #print code
+            # print code
             output = subprocess.check_output(code, shell=True)
             obj = json.loads(output)
-            #print " Last Modified: "+obj['LastModified']
+            # print " Last Modified: "+obj['LastModified']
             print " Sha: "+obj['CodeSha256']
-            #print " Code Size: " + str(obj['CodeSize'])
+            # print " Code Size: " + str(obj['CodeSize'])
         except Exception, e:
             raise Exception("unable to deploy lambdas from [" + self.get_account()+']')
 
@@ -168,7 +172,6 @@ class DeployLambda:
 
         if not os.path.isfile(os.path.expanduser('~') + '/.aws/credentials'):
             raise Exception('please run aws configure, missing credentials')
-
 
         userconfig = ConfigParser.ConfigParser()
         userconfig.readfp(open(os.path.expanduser('~') + '/.aws/credentials'))
@@ -228,7 +231,7 @@ class DeployLambda:
 
         # build our input data from file
         cli_input_json = dict(skeleton.items() + file_obj.items())
-        #pop this key if seen
+        # pop this key if seen
         if 'VpcId' in cli_input_json['VpcConfig']:
             cli_input_json['VpcConfig'].pop('VpcId')
 
@@ -238,7 +241,7 @@ class DeployLambda:
             #print "No metadata changes detected"
             return
 
-        #print "updating metadata"
+        # print "updating metadata"
         try:
             code = "aws lambda update-function-configuration --function " + self.function_name + " --profile " + self.profile + " --cli-input-json " + json.dumps(json.dumps(cli_input_json))
             data = subprocess.check_output(code, shell=True)
@@ -248,7 +251,7 @@ class DeployLambda:
     def version_and_create_alias(self, name):
         """publish a version from $LATEST and add an alias"""
         version = self._create_version()
-        #see if we need to create or update the alias
+        # see if we need to create or update the alias
 
         aliases = self._list_aliases()
         hasAlias = False
