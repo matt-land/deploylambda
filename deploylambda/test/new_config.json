@@ -1,0 +1,19 @@
+{
+  "FunctionName": "test_deploy",
+  "Role": "arn:aws:iam::850077434821:role/lambda_basic_vpc_execution",
+  "Handler": "test_deploy.lambda_handler",
+  "Description": "A starter AWS Lambda function.",
+  "Timeout": 10,
+  "MemorySize": 128,
+  "VpcConfig": {
+    "SubnetIds": [
+      "subnet-c843f790",
+      "subnet-96d14de0"
+    ],
+    "VpcId": "vpc-e0f0d484",
+    "SecurityGroupIds": [
+      "sg-fca57884"
+    ]
+  },
+  "Runtime": "python2.7"
+}
