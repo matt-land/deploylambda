@@ -17,5 +17,6 @@ class TestDeployLambda(TestCase):
             skeleton = json.load(data_file)
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), './new_config.json')) as data_file:
             new_config = json.load(data_file)
-        data = DeployLambda._build_metadata(skeleton, new_config)
-        self.assertEquals(8, data.__len__())
+        data = DeployLambda._build_metadata(skeleton, new_config, 'us-east-2')
+        self.assertEquals(9, len(data))
+        self.assertTrue('us-east-2' in data['DeadLetterConfig']['TargetArn'])

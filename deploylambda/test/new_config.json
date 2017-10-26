@@ -15,5 +15,8 @@
       "sg-fca57884"
     ]
   },
-  "Runtime": "python2.7"
+  "Runtime": "python2.7",
+  "DeadLetterConfig": {
+    "TargetArn": "arn:aws:sqs:us-east-1:850077434821:segment-separator-dlq"
+  }
 }

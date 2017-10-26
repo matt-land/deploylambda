@@ -179,11 +179,12 @@ class DeployLambda:
 
         userconfig = ConfigParser.ConfigParser()
         userconfig.readfp(open(os.path.expanduser('~') + '/.aws/credentials'))
-        os.environ['AWS_ACCESS_KEY_ID'] = userconfig.get(self.profile, 'aws_access_key_id')
-        os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(self.profile, 'aws_secret_access_key')
+        self.AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID'] = userconfig.get(self.profile, 'aws_access_key_id')
+
+        self.AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY'] = userconfig.get(self.profile, 'aws_secret_access_key')
 
         if not os.path.isfile(os.path.expanduser('~') + '/.aws/config'):
-            raise Exception( 'please run aws configure, missing config')
+            raise Exception('please run aws configure, missing config')
 
         if self.profile != 'default':
             profile = 'profile ' + self.profile
@@ -191,10 +192,10 @@ class DeployLambda:
             profile = self.profile
         regionconfig = ConfigParser.ConfigParser()
         regionconfig.readfp(open(os.path.expanduser('~') + '/.aws/config'))
-        os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
+        self.AWS_DEFAULT_REGION = os.environ['AWS_DEFAULT_REGION'] = regionconfig.get(profile, 'region')
 
     @staticmethod
-    def _build_metadata(skeleton, config):
+    def _build_metadata(skeleton, config, region):
         # remove empty trees we are not setting
         for config_key in ['KMSKeyArn', 'Environment', 'DeadLetterConfig', 'TracingConfig', 'VpcConfig']:
             try:
@@ -206,7 +207,8 @@ class DeployLambda:
         config = dict(skeleton.items() + config.items())
         if 'VpcConfig' in config and 'VpcId' in config['VpcConfig']:
             config['VpcConfig'].pop('VpcId')
-
+        if 'DeadLetterConfig' in config and 'TargetArn' in config['DeadLetterConfig']:
+            config['DeadLetterConfig']['TargetArn'] = config['DeadLetterConfig']['TargetArn'].replace('us-east-1', region)
         return config
 
     def update_metadata(self, path):
@@ -249,7 +251,7 @@ class DeployLambda:
         except:
             raise Exception("invalid json file detected " + config_file)
 
-        cli_input_json = DeployLambda._build_metadata(skeleton, file_obj)
+        cli_input_json = DeployLambda._build_metadata(skeleton, file_obj, self.AWS_DEFAULT_REGION)
 
         # compare input file to live file config
         if json.dumps(live_lambda_json) == json.dumps(cli_input_json):
@@ -262,9 +264,6 @@ class DeployLambda:
             data = subprocess.check_output(code, shell=True)
         except:
             raise Exception("unable to update lambda metadata " + str(sys.exc_info()))
-
-
-
 
     def version_and_create_alias(self, name):
         """publish a version from $LATEST and add an alias"""
